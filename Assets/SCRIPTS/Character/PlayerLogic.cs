@@ -159,13 +159,10 @@ public class PlayerLogic : MonoBehaviour
                  */
                 // ReSharper disable once Unity.InefficientPropertyAccess
                 var greedyRob = chunkHit.collider.transform.parent.GetComponent<GreedyRob>();
-                var curVox = greedyRob.voxels[(int) currentBlock.x, (int) currentBlock.y, (int) currentBlock.z];
                 /*
                  * Set the voxel type.
                  */
-                print("Block ID: " + curVox.ID);
-                curVox.type = 0;
-                curVox.transparent = true;
+                greedyRob.RemoveBlock((int) currentBlock.x, (int) currentBlock.y, (int) currentBlock.z);
                 greedyRob.CreateGreedyMesh();
 
                 isClickUpLeft = false;
@@ -197,14 +194,18 @@ public class PlayerLogic : MonoBehaviour
                   * Create new Chunk if array is out of array bounds.
                   */
                 float[] pos = {CB_TMP.x, CB_TMP.y, CB_TMP.z};
-                Array.ForEach(pos, element => {if (element < 0.2f) { chunkCreateBool = true; } });
-                Array.ForEach(pos, element => {if (element > 15f) { chunkCreateBool = true; } });
+                Array.ForEach(pos, element => {if (element < 0.01f) { chunkCreateBool = true; print(element);} });
+                Array.ForEach(pos, element => {if (element >= 15.99f) { chunkCreateBool = true; print(element);} });
                 if (chunkCreateBool)
                 {
+                    print(CB_TMP + " " + CB_NORMAL);
                     if (CB_NORMAL == new Vector3(0, 1, 0))
                     {
                         if (!greedyRob.CC_TOP)
                         {
+                            /*
+                             * Create the chunk and set the connected Voxels, bottom part adds the voxel.
+                             */
                             var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
                             chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(0, 4, 0);
                             greedyRob.CC_TOP = chunk;
@@ -213,61 +214,172 @@ public class PlayerLogic : MonoBehaviour
                             chunkRob.PopulateVoxelArray();
                             chunkRob.CreateGreedyMesh();
                             chunkRob.CC_BOTTOM = greedyRob.gameObject;
+                            //Create a block
+                            var number = currentBlock.y >= 15 ? 0 : 15;
+                            chunkRob.AddBlock((int) currentBlock.x, number,(int) currentBlock.z, 1);
+                            chunkRob.CreateGreedyMesh();
+                            
                         }
                         else
                         {
                             var number = currentBlock.y >= 15 ? 0 : 15;
                             var chunkRob = greedyRob.CC_TOP.GetComponent<GreedyRob>();
-                            var chunkVox = chunkRob.voxels[(int) currentBlock.x, number, (int) currentBlock.z];
-                            print(new Vector3((int) currentBlock.x, number, (int) currentBlock.z));
-                            chunkVox.type = 1;
-                            chunkVox.transparent = false;
+                            chunkRob.AddBlock((int) currentBlock.x, number,(int) currentBlock.z, 1);
                             chunkRob.CreateGreedyMesh();
                         }
                         
                     }
-                    if (CB_NORMAL == new Vector3(0, -1, 0) && !greedyRob.CC_BOTTOM)
+                    if (CB_NORMAL == new Vector3(0, -1, 0))
                     {
-                        var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
-                        chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(0, -4, 0);
-                        greedyRob.CC_BOTTOM = chunk;
-                        chunk.GetComponent<GreedyRob>().CC_TOP = greedyRob.gameObject;
+                        if (!greedyRob.CC_BOTTOM)
+                        {
+                            /*
+                             * Create the chunk and set the connected Voxels, bottom part adds the voxel.
+                             */
+                            var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
+                            chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(0, -4, 0);
+                            greedyRob.CC_BOTTOM = chunk;
+                            var chunkRob = chunk.GetComponent<GreedyRob>();
+                            chunkRob.Starter();
+                            chunkRob.PopulateVoxelArray();
+                            chunkRob.CreateGreedyMesh();
+                            chunkRob.CC_TOP = greedyRob.gameObject;
+                            //Create a block
+                            var number = currentBlock.y >= 15 ? 0 : 15;
+                            chunkRob.AddBlock((int) currentBlock.x, number,(int) currentBlock.z, 1);
+                            chunkRob.CreateGreedyMesh();
+                            
+                        }
+                        else
+                        {
+                            var number = currentBlock.y >= 15 ? 0 : 15;
+                            var chunkRob = greedyRob.CC_BOTTOM.GetComponent<GreedyRob>();
+                            chunkRob.AddBlock((int) currentBlock.x, number,(int) currentBlock.z, 1);
+                            chunkRob.CreateGreedyMesh();
+                        }
                     }
-                    if (CB_NORMAL == new Vector3(1, 0, 0) && !greedyRob.CC_WEST)
+                    if (CB_NORMAL == new Vector3(1, 0, 0))
                     {
-                        var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
-                        chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(4, 0, 0);
-                        greedyRob.CC_WEST = chunk;
-                        chunk.GetComponent<GreedyRob>().CC_EAST = greedyRob.gameObject; 
+                        if (!greedyRob.CC_WEST)
+                        {
+                            /*
+                             * Create the chunk and set the connected Voxels, bottom part adds the voxel.
+                             */
+                            var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
+                            chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(4, 0, 0);
+                            greedyRob.CC_WEST = chunk;
+                            var chunkRob = chunk.GetComponent<GreedyRob>();
+                            chunkRob.Starter();
+                            chunkRob.PopulateVoxelArray();
+                            chunkRob.CreateGreedyMesh();
+                            chunkRob.CC_EAST = greedyRob.gameObject;
+                            //Create a block
+                            var number = currentBlock.x >= 15 ? 0 : 15;
+                            chunkRob.AddBlock(number, (int)currentBlock.y,(int) currentBlock.z, 1);
+                            chunkRob.CreateGreedyMesh();
+                            
+                        }
+                        else
+                        {
+                            var number = currentBlock.x >= 15 ? 0 : 15;
+                            var chunkRob = greedyRob.CC_WEST.GetComponent<GreedyRob>();
+                            chunkRob.AddBlock(number, (int)currentBlock.y,(int) currentBlock.z, 1);
+                            chunkRob.CreateGreedyMesh();
+                        } 
                     }
-                    if (CB_NORMAL == new Vector3(-1, 0, 0) && !greedyRob.CC_EAST)
+                    if (CB_NORMAL == new Vector3(-1, 0, 0))
                     {
-                        var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
-                        chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(-4, 0, 0);
-                        greedyRob.CC_EAST = chunk;
-                        chunk.GetComponent<GreedyRob>().CC_WEST = greedyRob.gameObject;
+                        if (!greedyRob.CC_EAST)
+                        {
+                            /*
+                             * Create the chunk and set the connected Voxels, bottom part adds the voxel.
+                             */
+                            var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
+                            chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(-4, 0, 0);
+                            greedyRob.CC_EAST = chunk;
+                            var chunkRob = chunk.GetComponent<GreedyRob>();
+                            chunkRob.Starter();
+                            chunkRob.PopulateVoxelArray();
+                            chunkRob.CreateGreedyMesh();
+                            chunkRob.CC_WEST = greedyRob.gameObject;
+                            //Create a block
+                            var number = currentBlock.x >= 15 ? 0 : 15;
+                            chunkRob.AddBlock(number, (int)currentBlock.y,(int) currentBlock.z, 1);
+                            chunkRob.CreateGreedyMesh();
+                            
+                        }
+                        else
+                        {
+                            var number = currentBlock.x >= 15 ? 0 : 15;
+                            var chunkRob = greedyRob.CC_EAST.GetComponent<GreedyRob>();
+                            chunkRob.AddBlock(number, (int)currentBlock.y,(int) currentBlock.z, 1);
+                            chunkRob.CreateGreedyMesh();
+                        } 
                     }
-                    if (CB_NORMAL == new Vector3(0, 0, 1) && !greedyRob.CC_SOUTH)
+                    if (CB_NORMAL == new Vector3(0, 0, 1))
                     {
-                        var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
-                        chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(0, 0, 4);
-                        greedyRob.CC_SOUTH = chunk;
-                        chunk.GetComponent<GreedyRob>().CC_NORTH = greedyRob.gameObject;
+                        if (!greedyRob.CC_SOUTH)
+                        {
+                            /*
+                             * Create the chunk and set the connected Voxels, bottom part adds the voxel.
+                             */
+                            var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
+                            chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(0, 0, 4);
+                            greedyRob.CC_SOUTH = chunk;
+                            var chunkRob = chunk.GetComponent<GreedyRob>();
+                            chunkRob.Starter();
+                            chunkRob.PopulateVoxelArray();
+                            chunkRob.CreateGreedyMesh();
+                            chunkRob.CC_NORTH = greedyRob.gameObject;
+                            //Create a block
+                            var number = currentBlock.z >= 15 ? 0 : 15;
+                            chunkRob.AddBlock((int)currentBlock.x, (int)currentBlock.y,number, 1);
+                            chunkRob.CreateGreedyMesh();
+                            
+                        }
+                        else
+                        {
+                            var number = currentBlock.z >= 15 ? 0 : 15;
+                            var chunkRob = greedyRob.CC_SOUTH.GetComponent<GreedyRob>();
+                            chunkRob.AddBlock((int)currentBlock.x, (int)currentBlock.y,number, 1);
+                            chunkRob.CreateGreedyMesh();
+                        } 
                     }
-                    if (CB_NORMAL == new Vector3(0, 0, -1) && !greedyRob.CC_NORTH)
+                    if (CB_NORMAL == new Vector3(0, 0, -1))
                     {
-                        var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
-                        chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(0, 0, -4);
-                        greedyRob.CC_NORTH = chunk;
-                        chunk.GetComponent<GreedyRob>().CC_SOUTH = greedyRob.gameObject;
+                        if (!greedyRob.CC_NORTH)
+                        {
+                            /*
+                             * Create the chunk and set the connected Voxels, bottom part adds the voxel.
+                             */
+                            var chunk = Instantiate(Resources.Load("Prefabs/Chunk") as GameObject, greedyRob.gameObject.transform.parent);
+                            chunk.transform.localPosition = greedyRob.gameObject.transform.localPosition + new Vector3(0, 0, -4);
+                            greedyRob.CC_NORTH = chunk;
+                            var chunkRob = chunk.GetComponent<GreedyRob>();
+                            chunkRob.Starter();
+                            chunkRob.PopulateVoxelArray();
+                            chunkRob.CreateGreedyMesh();
+                            chunkRob.CC_SOUTH = greedyRob.gameObject;
+                            //Create a block
+                            var number = currentBlock.z >= 15 ? 0 : 15;
+                            chunkRob.AddBlock((int)currentBlock.x, (int)currentBlock.y,number, 1);
+                            chunkRob.CreateGreedyMesh();
+                            
+                        }
+                        else
+                        {
+                            var number = currentBlock.z >= 15 ? 0 : 15;
+                            var chunkRob = greedyRob.CC_NORTH.GetComponent<GreedyRob>();
+                            chunkRob.AddBlock((int)currentBlock.x, (int)currentBlock.y,number, 1);
+                            chunkRob.CreateGreedyMesh();
+                        } 
                     }
                 }
-                print(currentBlock);
                 /*
                  * Set the voxel type.
                  */
                 
-                var curVox = greedyRob.voxels[(int) currentBlock.x, (int) currentBlock.y, (int) currentBlock.z];
+                var curVox = greedyRob.GetVoxelByIndex((int) currentBlock.x, (int) currentBlock.y, (int) currentBlock.z);
                 if (!curVox.transparent)
                 {
                     isClickUpRight = false;

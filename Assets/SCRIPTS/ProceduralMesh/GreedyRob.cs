@@ -489,6 +489,25 @@ public class GreedyRob : MonoBehaviour
 
         return voxelFace;
     }
+
+    public void AddBlock(int x, int y, int z, int t_ID)
+    { 
+        var currentVoxel = voxels[x, y, z];
+        currentVoxel.ID = t_ID;
+        currentVoxel.transparent = false;
+    }
+    
+    public void RemoveBlock(int x, int y, int z)
+    { 
+        var currentVoxel = voxels[x, y, z];
+        currentVoxel.ID = 0;
+        currentVoxel.transparent = true;
+    }
+
+    public VoxelFace GetVoxelByIndex(int x, int y, int z)
+    {
+        return voxels[x, y, z];
+    }
     
     /**
      * This function renders a single quad in the scene. This quad may represent many adjacent voxel 
